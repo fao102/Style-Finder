@@ -5,4 +5,4 @@ from ..models import OutfitSearch
 class ImageSerializer(ModelSerializer):
     class Meta:
         model = OutfitSearch
-        fields = ("id", "image")
+        fields = "__all__"
