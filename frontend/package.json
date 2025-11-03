@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.53.3",
     "bootstrap": "^5.3.8",
+    "convex": "^1.28.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
