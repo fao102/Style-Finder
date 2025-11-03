@@ -1,12 +1,10 @@
 import React from "react";
 import ProductCard from "./productCard";
+import CheapestSidebar from "./CheapestSidebar";
 
 export default function ResultsGrid({ results }) {
   const { refined_label, products } = results;
  
-  
-  console.log(refined_label, products)
-  debugger
 
   return (
     <div>
@@ -21,6 +19,8 @@ export default function ResultsGrid({ results }) {
           </div>
         ))}
       </div>
+
+     
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React from "react";
 
 export default function ProductCard({ item }) {
   return (
-    <div className="card h-100 border-0 shadow-sm">
+    <div className="card h-100 w-100 border-0 shadow-sm">
       <img
         src={item.thumbnail}
         alt={item.title}
@@ -15,7 +15,7 @@ export default function ProductCard({ item }) {
           {item.price || "No price available"}
         </p>
         <a
-          href={item.link}
+          href={item.product_link}
           target="_blank"
           rel="noopener noreferrer"
           className="stretched-link text-decoration-none text-primary small"
