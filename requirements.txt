@@ -27,6 +27,8 @@ charset-normalizer==3.4.3
     # via requests
 colorama==0.4.6
     # via tqdm
+config==0.5.1
+    # via -r requirements.in
 decouple==0.0.7
     # via -r requirements.in
 distro==1.9.0

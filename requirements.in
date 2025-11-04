@@ -8,4 +8,5 @@ google-api-python-client
 google
 google-search
 gunicorn
+config
 decouple
