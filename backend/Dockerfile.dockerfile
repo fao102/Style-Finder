@@ -3,7 +3,8 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8000 
 
 # System deps for psycopg2 etc.
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -28,4 +29,4 @@ COPY . /app
 # Railway sets $PORT; default to 8000 for local
 CMD sh -c "python manage.py migrate --noinput && \
            python manage.py collectstatic --noinput && \
-           gunicorn core.wsgi:application --bind 0.0.0.0:${PORT:8000} --workers 3"
+           gunicorn core.wsgi:application --bind 0.0.0.0:$PORT--workers 3"
