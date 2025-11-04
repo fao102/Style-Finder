@@ -9,4 +9,4 @@ google
 google-search
 gunicorn
 config
-decouple
+python-decouple
