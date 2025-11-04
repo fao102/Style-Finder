@@ -27,6 +27,6 @@ COPY . /app
 
 # Run migrations + collectstatic at start, then serve
 # Railway sets $PORT; default to 8000 for local
-CMD sh -c "python manage.py migrate --noinput && \
+CMD bash -c "python manage.py migrate --noinput && \
            python manage.py collectstatic --noinput && \
-           gunicorn core.wsgi:application --bind 0.0.0.0:$PORT--workers 3"
+           gunicorn core.wsgi:application --bind 0.0.0.0:8000--workers 3"
