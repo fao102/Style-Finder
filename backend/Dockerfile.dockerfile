@@ -1,29 +1,29 @@
-# Dockerfile (for containerized deployment)
-FROM python:3.10-slim
+# backend/Dockerfile
+FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
 
-# Set work directory
-# WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# System deps for psycopg2 etc.
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt /backend/requirements.txt
-RUN 
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Workdir inside container
+WORKDIR /backend
 
-# Copy project
-COPY . /app/
+# Copy and install Python deps (cache-friendly)
+COPY requirements.txt requirements.txt
+RUN python -m pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Copy the rest of the backend code
+COPY . /app
 
-# Run gunicorn
-CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+# Run migrations + collectstatic at start, then serve
+# Railway sets $PORT; default to 8000 for local
+CMD sh -c "python manage.py migrate --noinput && \
+           python manage.py collectstatic --noinput && \
+           gunicorn core.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 3"
