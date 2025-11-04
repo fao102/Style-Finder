@@ -27,6 +27,8 @@ charset-normalizer==3.4.3
     # via requests
 colorama==0.4.6
     # via tqdm
+config==0.5.1
+    # via -r requirements.in
 distro==1.9.0
     # via openai
 django==5.2.4
@@ -83,6 +85,8 @@ grpcio==1.75.1
     #   grpcio-status
 grpcio-status==1.75.1
     # via google-api-core
+gunicorn==23.0.0
+    # via -r requirements.in
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
@@ -104,6 +108,8 @@ lxml==6.0.2
     # via google-search
 openai==2.3.0
     # via -r requirements.in
+packaging==25.0
+    # via gunicorn
 proto-plus==1.26.1
     # via
     #   google-api-core
@@ -127,6 +133,8 @@ pydantic-core==2.41.1
     # via pydantic
 pyparsing==3.2.5
     # via httplib2
+python-decouple==3.8
+    # via -r requirements.in
 requests==2.32.5
     # via
     #   google-api-core
