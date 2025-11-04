@@ -12,10 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Workdir inside container
-WORKDIR /backend
+WORKDIR /
 
 # Copy and install Python deps (cache-friendly)
 COPY requirements.txt requirements.txt
+
+RUN cd backend
 RUN python -m pip install --upgrade pip && \
     pip install -r requirements.txt
 
