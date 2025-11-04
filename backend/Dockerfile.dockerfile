@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Workdir inside container
 
-WORKDIR /backend
+
 # Copy and install Python deps (cache-friendly)
 COPY requirements.txt requirements.txt
 
