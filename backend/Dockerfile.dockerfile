@@ -7,6 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
     PYTHONPATH=/app \
     DJANGO_SETTINGS_MODULE=core.settings
+    
 
 # System deps for psycopg2 etc.
 RUN apt-get update && apt-get install -y --no-install-recommends \
