@@ -28,6 +28,8 @@ RUN python -m pip install --upgrade pip && \
 # Copy the rest of the backend code
 COPY backend/ /app
 
+RUN mkdir -p /app/staticfiles
+
 # Run migrations + collectstatic at start, then serve
 # Railway sets $PORT; default to 8000 for local
 CMD bash -c "python manage.py migrate --noinput && \
