@@ -11,3 +11,4 @@ gunicorn
 config
 python-decouple
 dj-database-url
+logging
