@@ -218,6 +218,7 @@ frontend/convex
 /node_modules
 backend/uploads
 uploads
+google-vision-key.json
 
 # Logs
 logs
