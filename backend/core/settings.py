@@ -52,6 +52,7 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 CORS_ALLOW_CREDENTIALS = True
+ORS_ALLOW_ALL_ORIGINS = True
 
 # Allow all Vercel preview URLs (they change per build)
 CORS_ALLOWED_ORIGIN_REGEXES = [
