@@ -35,6 +35,7 @@ RUN mkdir -p /app/staticfiles
 CMD bash -c "python manage.py migrate --noinput && \
            python manage.py collectstatic --noinput"
 
-CMD ["python","-m","gunicorn","core.wsgi:application","--bind","0.0.0.0:$PORT","--workers","1"]
+CMD bash -c "gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 1"
+
 
          
