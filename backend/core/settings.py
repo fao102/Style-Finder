@@ -14,7 +14,7 @@ def csv_env(name, default=""):
 # SECURITY
 SECRET_KEY = csv_env(config("SECRET_KEY"))
 DEBUG = config("DEBUG", default=False, cast=bool)
-ALLOWED_HOSTS = csv_env(config("ALLOWED_HOSTS", cast=Csv()))
+ALLOWED_HOSTS = csv_env(config("ALLOWED_HOSTS"))
 
 # Application definition
 INSTALLED_APPS = [
@@ -43,7 +43,7 @@ MIDDLEWARE = [
 
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = csv_env(config("CORS_ALLOWED_ORIGINS", cast=Csv()))
+CORS_ALLOWED_ORIGINS = csv_env(config("CORS_ALLOWED_ORIGINS"))
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -64,7 +64,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.vercel\.app$",
 ]
 
-CSRF_TRUSTED_ORIGINS = csv_env(config("CSRF_TRUSTED_ORIGINS", cast=Csv()))
+CSRF_TRUSTED_ORIGINS = csv_env(config("CSRF_TRUSTED_ORIGINS"))
 
 # Security Settings
 SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=True, cast=bool)
