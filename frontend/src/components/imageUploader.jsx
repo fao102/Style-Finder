@@ -14,6 +14,7 @@ export default function ImageUploader() {
   };
 
   const handleUpload = async () => {
+    console.log("[ui] handleUpload start, image?", !!image);
     if (!image) {
       alert("Please select an image first!");
       return;
@@ -24,6 +25,7 @@ export default function ImageUploader() {
     formData.append("image", image);
 
     try {
+      console.log("[ui] about to call uploadImage:", typeof uploadImage);
       const data = await uploadImage(formData);
       setResults(data);
     } catch (error) {

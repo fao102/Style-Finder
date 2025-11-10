@@ -16,10 +16,10 @@ const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+    {/* <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}> */}
         <App />
-      </ConvexProviderWithClerk>
-    </ClerkProvider>
+      {/* </ConvexProviderWithClerk>
+    </ClerkProvider> */}
   </StrictMode>,
 )
