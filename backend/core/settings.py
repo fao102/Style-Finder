@@ -13,7 +13,7 @@ def csv_env(name, default=""):
 
 # SECURITY
 SECRET_KEY = csv_env(config("SECRET_KEY"))
-DEBUG = csv_env(config("DEBUG", default=False, cast=bool))
+DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = csv_env(config("ALLOWED_HOSTS", cast=Csv()))
 
 # Application definition
@@ -67,7 +67,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 CSRF_TRUSTED_ORIGINS = csv_env(config("CSRF_TRUSTED_ORIGINS", cast=Csv()))
 
 # Security Settings
-SECURE_SSL_REDIRECT = csv_env(config("SECURE_SSL_REDIRECT", default=True, cast=bool))
+SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=True, cast=bool)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
