@@ -31,10 +31,13 @@ RUN mkdir -p /app/staticfiles
 
 # Run migrations + collectstatic at start, then serve
 # Railway sets $PORT; default to 8000 for local
-CMD bash -c "python manage.py migrate --noinput && \
-           python manage.py collectstatic --noinput"
+# CMD bash -c "python manage.py migrate --noinput && \
+#            python manage.py collectstatic --noinput"
 
-CMD bash -c "gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 1"
+# CMD bash -c "gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 1"
+COPY entry.sh /entry.sh
+RUN chmod +x /entry.sh
 
+CMD ["/entry.sh"]
 
          
