@@ -15,6 +15,7 @@ export default function ImageUploader() {
 
   const handleUpload = async () => {
     console.error("[ui] handleUpload start, image?", !!image);
+    
     if (!image) {
       alert("Please select an image first!");
       return;
