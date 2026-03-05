@@ -1,179 +1,224 @@
-# Style Finder 👗👔
+# Style Finder
 
-An AI-powered fashion search application that helps you find cheaper alternatives to outfits in images. Simply upload a photo of an outfit, and Style Finder will analyze it using Google's Gemini AI and search for similar, affordable products online.
+**AI‑powered outfit search & price comparison**
 
-## Features
+Style Finder is a full‑stack application built to showcase modern web development practices and hands‑on experience with large language models. Users upload a photo of an outfit, the backend analyzes it with Google’s Gemini AI, formulates a query, and then searches Google Shopping via SerpAPI to surface visually similar, lower‑cost alternatives.
 
-- **AI-Powered Analysis**: Uses Google Gemini 2.5 Flash to analyze outfit images and extract details like gender, type, color, fit, and style
-- **Smart Product Search**: Integrates with SerpAPI to find similar and cheaper alternatives from online retailers
-- **Clean UI**: Modern, responsive interface built with React and Bootstrap
-- **Fast Results**: Efficient image processing and search capabilities
+Engineered for maintainability and clarity, the project is intended for recruiters, employers, or collaborators to review end‑to‑end architecture, coding conventions and deployment strategy.
+
+---
+
+## Highlights
+
+- **Gemini 2.5 Flash** for image understanding (JSON mode)
+- **SerpAPI / Google Shopping** integration for product lookup
+- React + Vite frontend with Bootstrap styling
+- Django REST backend deployed in Docker on Railway
+- Optional authentication via Clerk
+- CI/CD pipeline triggers on branch `prodcution` (intentional typo)
+
+---
+
+## Architecture Overview
+
+### Backend
+
+- Django 5.2.4 + DRF handles uploads, AI calls and search logic.
+- Primary logic lives in `app/api/views.py` (UploadImageViewSet).
+- `app/api/helper.py` contains utilities such as `resize_image`.
+- SQLite used for local development; PostgreSQL in production.
+- `entry.sh` runs migrations then launches Gunicorn.
+
+### Frontend
+
+- React 19 SPA with functional components and hooks.
+- Key components: `imageUploader`, `resultsGrid`, `productCard`.
+- Clerk authentication is wrapped around the app but optional.
+- Configuration via Vite environment variables.
+
+### Data Flow
+
+1. User posts image → backend saves & resizes (720px max).
+2. Backend sends prompt to Gemini and parses the returned JSON.
+3. A search query is constructed and submitted to SerpAPI.
+4. API returns product list; frontend renders responsive cards.
+
+---
 
 ## Tech Stack
 
+| Layer       | Tools / Libraries                         |
+|-------------|-------------------------------------------|
+| Backend     | Python 3.11, Django, DRF, Pillow, dj‑database‑url |
+| AI & Search | google‑generativeai, requests, SerpAPI     |
+| Frontend    | React, Vite, Bootstrap, Axios            |
+| Deployment  | Docker, Railway (backend), Vercel (frontend) |
+| CI / Testing| GitHub Actions, pytest, ESLint           |
+| Auth        | Clerk (optional)                         |
+| Database    | PostgreSQL (prod), SQLite (dev)          |
+
+---
+
+## Development Setup
+
+### Prerequisites
+
+- Node 20.19+ / 22.12+
+- Python 3.10+ (3.11 recommended)
+- Git, Docker (for local production simulation)
+- Google Gemini & SerpAPI API keys
+
 ### Backend
-- **Django 5.2.4** - Web framework
-- **Django REST Framework** - API development
-- **Google Gemini AI** - Image analysis and outfit understanding
-- **SerpAPI** - Product search via Google Shopping
-- **Pillow** - Image processing and resizing
-
-### Frontend
-- **React 19** - UI framework
-- **Vite** - Build tool and dev server
-- **Bootstrap 5.3** - Styling and responsive design
-- **Axios** - HTTP client for API requests
-
-## Prerequisites
-
-- Python 3.10+
-- Node.js 20.19+ or 22.12+
-- Google Gemini API key
-- SerpAPI key
-
-## Installation
-
-### 1. Clone the Repository
-
-```bash
-git clone <your-repo-url>
-cd Style-Finder
-```
-
-### 2. Backend Setup
 
 ```bash
 cd backend
-
-# Create virtual environment
 python -m venv venv
-
-# Activate virtual environment
-# On Windows:
+# Windows:
 venv\Scripts\activate
-# On macOS/Linux:
+# macOS/Linux:
 source venv/bin/activate
 
-# Install dependencies
 pip install -r requirements.txt
-
-# Create .env file
 cp .env.example .env
-```
-
-Edit `.env` and add your API keys:
-
-```env
-SECRET_KEY=your-django-secret-key
-GEMINI_API_KEY=your-gemini-api-key
-SERP_API_KEY=your-serpapi-key
-```
-
-```bash
-# Run migrations
+# populate .env with keys & settings
 python manage.py migrate
-
-# Create superuser (optional)
-python manage.py createsuperuser
-
-# Start development server
 python manage.py runserver
 ```
 
-The backend will run at `http://localhost:8000`
+Use `DJANGO_SETTINGS_MODULE=core.dev_settings` to run with SQLite.
 
-### 3. Frontend Setup
+### Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
-npm install
-
-# Create .env file
+npm ci
 cp .env.example .env
-```
-
-Edit `.env` and configure your API URL:
-
-```env
-VITE_API_URL=http://localhost:8000/api/outfit_searches/
-```
-
-```bash
-# Start development server
+# set VITE_API_URL to backend endpoint
 npm run dev
 ```
 
-The frontend will run at `http://localhost:5173`
+Head to `http://localhost:5173`. Auth buttons appear if `VITE_CLERK_PUBLISHABLE_KEY` is defined.
 
-## Usage
+---
 
-1. Open your browser and navigate to `http://localhost:5173`
-2. Click "Choose file" and select an image of an outfit
-3. Click "Find Cheaper Alternatives"
-4. Wait for the AI to analyze the image (this may take a few seconds)
-5. Browse through the suggested products and click on any item to view it on the retailer's website
+## Environment Variables
 
-## Project Structure
+**Backend (.env)**
 
-```
-Style-Finder/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── helper.py      # Image processing utilities
-│   │   │   ├── serializers.py # DRF serializers
-│   │   │   ├── urls.py        # API routes
-│   │   │   └── views.py       # API views and logic
-│   │   ├── migrations/
-│   │   ├── models.py          # Database models
-│   │   └── admin.py           # Django admin config
-│   ├── core/
-│   │   ├── settings.py        # Django settings
-│   │   └── urls.py            # Main URL config
-│   ├── manage.py
-│   └── requirements.txt
-│
-└── frontend/
-    ├── src/
-    │   ├── components/
-    │   │   ├── imageUploader.jsx  # Main upload component
-    │   │   ├── resultsGrid.jsx    # Results display
-    │   │   └── productCard.jsx    # Product card component
-    │   ├── api.js                 # API client
-    │   ├── App.jsx                # Main app component
-    │   └── main.jsx               # Entry point
-    ├── package.json
-    └── vite.config.js
+```env
+SECRET_KEY=…
+DATABASE_URL=postgres://…
+GEMINI_API_KEY=…
+SERP_API_KEY=…
+ALLOWED_HOSTS=…
+CORS_ALLOWED_ORIGINS=…
+DEBUG=False     # set True for dev
 ```
 
-## API Endpoints
+**Frontend (.env)**
 
-### POST `/api/outfit_searches/`
+```env
+VITE_API_URL=http://localhost:8000/api/outfit_searches/
+VITE_CLERK_PUBLISHABLE_KEY=…
+```
 
-Upload an outfit image and get product recommendations.
+---
 
-**Request:**
-- Method: `POST`
-- Content-Type: `multipart/form-data`
-- Body: `image` (file)
+## Deployment
 
-**Response:**
+### Backend (Railway / Docker)
+
+- Dockerfile located at `backend/Dockerfile.dockerfile`.
+- `entry.sh` migrates and starts Gunicorn on `$PORT`.
+- GitHub Actions builds and pushes on branch `prodcution`.
+
+### Frontend (Vercel)
+
+- Standard Vite build; `npm run build` produces static output.
+- Connect the repository to Vercel and set environment variables accordingly.
+
+### Local Production Simulation
+
+```bash
+cd backend
+docker-compose up --build
+```
+
+This starts Postgres + Django for integration testing.
+
+---
+
+## API Reference
+
+### `POST /api/outfit_searches/`
+
+Upload an outfit image and receive product recommendations.
+
+- **Headers**: `Content-Type: multipart/form-data`
+- **Body**: `image` (file)
+
+**Response sample**:
+
 ```json
 {
   "refined_label": "Men's navy slim-fit blazer",
   "products": [
     {
-      "title": "Product name",
-      "price": "$49.99",
-      "link": "https://...",
-      "thumbnail": "https://...",
-      "source": "Store name"
+      "title": "...",
+      "price": "...",
+      "link": "...",
+      "thumbnail": "...",
+      "source": "..."
     }
   ]
 }
 ```
+
+All CRUD operations exist since `UploadImageViewSet` extends `ModelViewSet`.
+
+---
+
+## Code Quality & Testing
+
+- Python code follows PEP 8; linting aided by Pylance.
+- Frontend linting via ESLint (`npm run lint`).
+- Run Django tests with `python manage.py test`.
+- CI pipeline includes lint checks and a Docker build step.
+
+---
+
+## Contribution Guidelines
+
+Pull requests are welcome. Please:
+
+1. Fork the repo and create a feature branch.
+2. Add tests for new functionality.
+3. Follow existing coding conventions.
+4. Update documentation when behavior changes.
+
+---
+
+## Roadmap
+
+- Price filtering & sort options
+- User accounts & search history
+- Save/favorite products
+- Multiple image uploads
+- Caching Gemini responses
+
+---
+
+## Acknowledgements
+
+Thanks to Google Gemini, SerpAPI, React, Bootstrap, Django and the broader open‑source community for enabling this project.
+
+---
+
+## License
+
+MIT License – see [LICENSE](LICENSE).
+
+
 
 ## How It Works
 
