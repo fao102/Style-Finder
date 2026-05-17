@@ -15,7 +15,7 @@ export default function ProductCard({ item }) {
           {item.price || "No price available"}
         </p>
         <a
-          href={item.product_link}
+          href={item.product_link || item.link}
           target="_blank"
           rel="noopener noreferrer"
           className="stretched-link text-decoration-none text-primary small"
