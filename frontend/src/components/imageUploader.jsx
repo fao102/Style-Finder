@@ -7,30 +7,35 @@ export default function ImageUploader() {
   const [image, setImage] = useState(null);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleFileChange = (e) => {
     setImage(e.target.files[0]);
     setResults(null);
+    setError(null);
   };
 
   const handleUpload = async () => {
-   
-    
     if (!image) {
-      alert("Please select an image first!");
+      setError("Please select an image first.");
       return;
     }
 
     setLoading(true);
+    setError(null);
     const formData = new FormData();
     formData.append("image", image);
 
     try {
       const data = await uploadImage(formData);
       setResults(data);
-    } catch (error) {
-      console.error("Upload failed", error);
-      alert("Something went wrong while analyzing your image.");
+    } catch (err) {
+      console.error("Upload failed", err);
+      if (err.response?.status === 429) {
+        setError("You've made too many requests. Please wait a moment and try again.");
+      } else {
+        setError("Something went wrong while analyzing your image. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -75,6 +80,12 @@ export default function ImageUploader() {
             >
               {loading ? "Analyzing..." : "Find Alternatives"}
             </button>
+
+            {error && (
+              <div className="alert alert-warning mt-3 mb-0" role="alert">
+                {error}
+              </div>
+            )}
           </div>
         </div>
 
