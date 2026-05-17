@@ -186,9 +186,11 @@ LOGGING = {
     },
 }
 
-# API Keys (from environment variables
+# API Keys (from environment variables)
 GEMINI_API_KEY = config("GEMINI_API_KEY")
 SERP_API_KEY = config("SERP_API_KEY")
+# Clerk JWT — set to https://<your-clerk-domain>/.well-known/jwks.json
+CLERK_JWKS_URL = os.getenv("CLERK_JWKS_URL", "")
 
 # REST Framework
 REST_FRAMEWORK = {

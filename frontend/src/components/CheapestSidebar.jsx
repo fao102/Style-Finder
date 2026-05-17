@@ -1,74 +1,68 @@
 import React from "react";
 
+function extractPrice(item) {
+  return item.extracted_price ?? item.price?.extracted_value ?? null;
+}
+
 export function topCheapest(items, n = 5) {
   return [...items]
-    .filter((it) => it.price?.extracted_value != null)
-    .sort((a, b) => a.price.extracted_value - b.price.extracted_value)
+    .filter((it) => extractPrice(it) != null)
+    .sort((a, b) => extractPrice(a) - extractPrice(b))
     .slice(0, n);
-
-
 }
 
 export default function CheapestSidebar({ results }) {
-    const { refined_label, products } = results;
-    const cheapest = topCheapest(products, 5);
+  const { refined_label, products } = results;
+  const cheapest = topCheapest(products, 5);
 
-    return (
-        <aside >
-        <div className="card shadow-sm mb-4">
-            <div className="card-header bg-white fw-semibold">
-            Cheapest Matches
-            </div>
+  return (
+    <aside>
+      <div className="card shadow-sm mb-4">
+        <div className="card-header bg-white fw-semibold">
+          Cheapest Matches
+        </div>
 
-            <ul className="list-group list-group-flush">
+        {cheapest.length === 0 ? (
+          <div className="card-body text-muted small">No price data available.</div>
+        ) : (
+          <ul className="list-group list-group-flush">
             {cheapest.map((item, idx) => (
-                <li key={idx} className="list-group-item">
+              <li key={idx} className="list-group-item">
                 <div className="d-flex align-items-center gap-2">
-                    {/* Image */}
-                    <img
+                  <img
                     src={item.thumbnail || item.image}
                     alt={item.title}
-                    className="rounded"
-                    style={{
-                        width: "55px",
-                        height: "55px",
-                        objectFit: "cover",
-                        flexShrink: 0
-                    }}
-                    />
-
-                    {/* Text */}
-                    <div className="ms-3 flex-grow-1">
+                    className="rounded flex-shrink-0"
+                    style={{ width: 55, height: 55, objectFit: "cover" }}
+                  />
+                  <div className="flex-grow-1 overflow-hidden">
                     <div
-                        className="fw-semibold text-truncate"
-                        style={{ maxWidth: "150px" }}
-                        title={item.title}
+                      className="fw-semibold text-truncate small"
+                      style={{ maxWidth: 150 }}
+                      title={item.title}
                     >
-                        {item.title}
+                      {item.title}
                     </div>
-
-                    <div className="text-muted small fw-semibold">
-                        {item.price?.extracted_value
-                        ? `$${item.price.extracted_value}`
+                    <div className="text-success small fw-semibold">
+                      {extractPrice(item) != null
+                        ? `£${extractPrice(item).toFixed(2)}`
                         : item.price || "—"}
                     </div>
-                    </div>
-
-                    {/* View button */}
-                    <a
-                    href={item.link}
+                  </div>
+                  <a
+                    href={item.product_link || item.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn btn-outline-secondary btn-sm"
-                    >
+                    className="btn btn-outline-secondary btn-sm flex-shrink-0"
+                  >
                     View
-                    </a>
-
+                  </a>
                 </div>
-                </li>
+              </li>
             ))}
-            </ul>
-        </div>
-        </aside>
+          </ul>
+        )}
+      </div>
+    </aside>
   );
 }

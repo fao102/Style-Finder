@@ -64,3 +64,4 @@ urllib3==2.5.0
 whitenoise
 django-redis==5.4.0
 redis==5.2.1
+PyJWT[crypto]>=2.8.0

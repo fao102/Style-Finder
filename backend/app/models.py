@@ -9,6 +9,7 @@ class OutfitSearch(models.Model):
     fit = models.CharField(max_length=100, blank=True, null=True)
     style_summary = models.TextField(blank=True, null=True)
     results = models.JSONField(blank=True, null=True)
+    clerk_user_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

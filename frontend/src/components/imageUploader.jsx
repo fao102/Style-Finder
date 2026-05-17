@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import { uploadImage } from "../api";
 import ResultsGrid from "./resultsGrid";
 import CheapestSidebar from "./CheapestSidebar";
 
 export default function ImageUploader() {
+  const { isSignedIn, getToken } = useAuth();
   const [image, setImage] = useState(null);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,8 @@ export default function ImageUploader() {
     formData.append("image", image);
 
     try {
-      const data = await uploadImage(formData);
+      const token = isSignedIn ? await getToken() : null;
+      const data = await uploadImage(formData, token);
       setResults(data);
     } catch (err) {
       console.error("Upload failed", err);
