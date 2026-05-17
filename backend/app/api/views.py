@@ -1,6 +1,8 @@
 import os
+import hashlib
 import requests
 import google.generativeai as genai
+from django.core.cache import cache
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
@@ -14,6 +16,7 @@ load_dotenv()
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 SERP_API_KEY = os.getenv("SERP_API_KEY")
+CACHE_TTL = 3600  # 1 hour
 
 
 class UploadImageViewSet(ModelViewSet):
@@ -21,12 +24,11 @@ class UploadImageViewSet(ModelViewSet):
     serializer_class = ImageSerializer
 
     def create(self, request, *args, **kwargs):
-        # Save uploaded image
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
 
-        # 🧠 Use Gemini to analyze image directly
+        # Step 3: Analyze image with Gemini Vision
         model = genai.GenerativeModel("gemini-2.5-flash")
         prompt = """
         You are a fashion label extractor.
@@ -52,9 +54,7 @@ class UploadImageViewSet(ModelViewSet):
                             ],
                         },
                     ],
-                    generation_config={
-                        "response_mime_type": "application/json",
-                    },
+                    generation_config={"response_mime_type": "application/json"},
                 )
 
             try:
@@ -65,28 +65,41 @@ class UploadImageViewSet(ModelViewSet):
         except Exception as e:
             data = {"error": f"Gemini API call failed: {str(e)}"}
 
+        # Step 4: Save labels to DB
         instance.gender = data.get("gender")
         instance.outfit_type = data.get("type")
         instance.color = data.get("color")
         instance.fit = data.get("fit")
         instance.style_summary = data.get("style_summary")
+
+        refined_label = instance.style_summary or ""
+
+        # Step 7a: Check Redis cache before calling SerpAPI (step 5)
+        cache_key = "serp_" + hashlib.md5(refined_label.encode()).hexdigest()
+        cached = cache.get(cache_key)
+
+        if cached is not None:
+            results = cached
+        else:
+            # Step 5: Search products via SerpAPI
+            try:
+                serp_url = "https://serpapi.com/search.json"
+                params = {
+                    "engine": "google_shopping",
+                    "q": f"{refined_label} cheap alternatives",
+                    "api_key": SERP_API_KEY,
+                }
+                serp_response = requests.get(serp_url, params=params)
+                results = serp_response.json().get("shopping_results", [])
+            except Exception as e:
+                results = []
+
+            # Step 7a: Store results in cache
+            cache.set(cache_key, results, timeout=CACHE_TTL)
+
+        # Step 7b: Save search results + timestamp to DB
+        instance.results = results
         instance.save()
-
-        # 🛍 Use SERPAPI to find similar/cheaper products
-        try:
-
-            serp_url = "https://serpapi.com/search.json"
-            refined_label = instance.style_summary
-            params = {
-                "engine": "google_shopping",
-                "q": f"{refined_label} cheap alternatives",
-                "api_key": SERP_API_KEY,
-            }
-            serp_response = requests.get(serp_url, params=params)
-            results = serp_response.json().get("shopping_results", [])
-
-        except Exception as e:
-            data = {"error": f"Gemini API call failed: {str(e)}"}
 
         return Response(
             {

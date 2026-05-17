@@ -1,10 +1,9 @@
 import React from "react";
 
 export function topCheapest(items, n = 5) {
-   
   return [...items]
-    .filter((it) => it.extracted_value == null)
-    .sort((a, b) => a.extracted_value - b.extracted_value)
+    .filter((it) => it.price?.extracted_value != null)
+    .sort((a, b) => a.price.extracted_value - b.price.extracted_value)
     .slice(0, n);
 
 
@@ -24,8 +23,7 @@ export default function CheapestSidebar({ results }) {
             <ul className="list-group list-group-flush">
             {cheapest.map((item, idx) => (
                 <li key={idx} className="list-group-item">
-                <div>
-            
+                <div className="d-flex align-items-center gap-2">
                     {/* Image */}
                     <img
                     src={item.thumbnail || item.image}

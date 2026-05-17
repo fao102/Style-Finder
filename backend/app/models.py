@@ -8,6 +8,7 @@ class OutfitSearch(models.Model):
     color = models.CharField(max_length=100, blank=True, null=True)
     fit = models.CharField(max_length=100, blank=True, null=True)
     style_summary = models.TextField(blank=True, null=True)
+    results = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
