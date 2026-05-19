@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { uploadImage } from "../api";
-import ResultsGrid from "./resultsGrid";
+import ResultsGrid from "./ResultsGrid";
 import CheapestSidebar from "./CheapestSidebar";
-import { useDropzone } from "react-dropzone";
+
 
 export default function ImageUploader() {
   const { isSignedIn, getToken } = useAuth();
@@ -19,11 +19,7 @@ export default function ImageUploader() {
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "image/*": [] },
-    multiple: false,
-  });
+
 
   const handleFileChange = (e) => {
     setImage(e.target.files[0]);
@@ -68,26 +64,12 @@ export default function ImageUploader() {
           <div className="card-body">
             <h4 className="mb-3 fw-semibold">Upload an Outfit Image</h4>
 
-            <div
-              {...getRootProps()}
-              className={`border rounded p-4 mb-3 text-center ${
-                isDragActive ? "border-dark bg-light" : "border-secondary"
-              }`}
-              style={{ cursor: "pointer" }}
-            >
-              <input {...getInputProps()} />
-              <p className="mb-1 fs-6 fw-semibold">
-                {isDragActive
-                  ? "Drop the image here to upload"
-                  : "Drag & drop an image here, or click to browse"}
-              </p>
-              <p className="text-muted mb-0">PNG, JPG, JPEG, or GIF</p>
-              {image && (
-                <p className="mt-2 mb-0 small text-truncate">
-                  Selected file: {image.name}
-                </p>
-              )}
-            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="form-control mb-3"
+              onChange={handleFileChange}
+            />
 
             {image && (
               <div className="mb-3">

@@ -40,6 +40,59 @@ def get_clerk_user_id(request):
         return None
 
 
+def serp_api_search(refined_label):
+    serp_url = "https://serpapi.com/search.json"
+    params = {
+        "engine": "google_shopping",
+        "q": f"{refined_label} cheap alternatives",
+        "api_key": SERP_API_KEY,
+    }
+    serp_response = requests.get(serp_url, params=params)
+    results = serp_response.json().get("shopping_results", [])
+    return results
+
+
+def gemini_vision_data(instance):
+    # Step 3: Analyze image with Gemini Vision
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    prompt = """
+    You are a fashion label extractor.
+    Analyze the outfit in the image and return ONLY a JSON object with:
+    - gender: "Men" | "Women" | "Unisex"
+    - type: concise clothing type (e.g., "T-shirt", "Blazer", "Dress", "Tracksuit")
+    - color: main visible color(s)
+    - fit: e.g., "Slim fit", "Oversized", "Regular", "Loose"
+    - brand (if visible): e.g., "Nike", "Adidas", "Zara"
+    - era/style: e.g., "90s", "Streetwear", "Bohemian", "Business casual"
+    - style_summary: most effective one sentence summary to find similar items online, making sure to include type, fit, and style keywords. The more accurate the better.
+    Output only JSON, no extra commentary.
+    """
+    image_path = resize_image(instance.image.path)
+
+    try:
+        with open(image_path, "rb") as img:
+            response = model.generate_content(
+                [
+                    {
+                        "role": "user",
+                        "parts": [
+                            {"mime_type": "image/jpeg", "data": img.read()},
+                            {"text": prompt},
+                        ],
+                    },
+                ],
+                generation_config={"response_mime_type": "application/json"},
+            )
+        try:
+            data = json.loads(response.text)
+        except json.JSONDecodeError:
+            data = {"error": "Could not parse AI output", "raw": response.text}
+    except Exception as e:
+        data = {"error": f"Gemini API call failed: {str(e)}"}
+
+    return data
+
+
 class UploadImageViewSet(ModelViewSet):
     queryset = OutfitSearch.objects.all()
     serializer_class = ImageSerializer
@@ -49,42 +102,9 @@ class UploadImageViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
 
-        # Step 3: Analyze image with Gemini Vision
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        prompt = """
-        You are a fashion label extractor.
-        Analyze the outfit in the image and return ONLY a JSON object with:
-        - gender: "Men" | "Women" | "Unisex"
-        - type: concise clothing type (e.g., "T-shirt", "Blazer", "Dress", "Tracksuit")
-        - color: main visible color(s)
-        - fit: e.g., "Slim fit", "Oversized", "Regular", "Loose"
-        - style_summary: one-sentence summary (e.g., "Men's navy slim-fit blazer")
-        Output only JSON, no extra commentary.
-        """
-        image_path = resize_image(instance.image.path)
+        data = gemini_vision_data(instance)
 
-        try:
-            with open(image_path, "rb") as img:
-                response = model.generate_content(
-                    [
-                        {
-                            "role": "user",
-                            "parts": [
-                                {"mime_type": "image/jpeg", "data": img.read()},
-                                {"text": prompt},
-                            ],
-                        },
-                    ],
-                    generation_config={"response_mime_type": "application/json"},
-                )
-            try:
-                data = json.loads(response.text)
-            except json.JSONDecodeError:
-                data = {"error": "Could not parse AI output", "raw": response.text}
-        except Exception as e:
-            data = {"error": f"Gemini API call failed: {str(e)}"}
-
-        # Step 4: Save labels to DB
+        # Save labels to DB
         instance.gender = data.get("gender")
         instance.outfit_type = data.get("type")
         instance.color = data.get("color")
@@ -105,14 +125,7 @@ class UploadImageViewSet(ModelViewSet):
         else:
             # Step 5: Search products via SerpAPI
             try:
-                serp_url = "https://serpapi.com/search.json"
-                params = {
-                    "engine": "google_shopping",
-                    "q": f"{refined_label} cheap alternatives",
-                    "api_key": SERP_API_KEY,
-                }
-                serp_response = requests.get(serp_url, params=params)
-                results = serp_response.json().get("shopping_results", [])
+                results = serp_api_search(refined_label)
             except Exception:
                 results = []
 
@@ -135,6 +148,10 @@ class UploadImageViewSet(ModelViewSet):
                 {"error": "Authentication required"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        searches = OutfitSearch.objects.filter(clerk_user_id=user_id).order_by("-created_at")
-        serializer = HistorySerializer(searches, many=True, context={"request": request})
+        searches = OutfitSearch.objects.filter(clerk_user_id=user_id).order_by(
+            "-created_at"
+        )
+        serializer = HistorySerializer(
+            searches, many=True, context={"request": request}
+        )
         return Response(serializer.data)
