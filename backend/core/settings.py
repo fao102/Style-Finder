@@ -123,22 +123,43 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# Static files — served by WhiteNoise from the container
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# Media files
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# Media files — Cloudflare R2 in production (ephemeral container disk otherwise)
+_r2_ready = all([
+    os.getenv("R2_ACCESS_KEY_ID"),
+    os.getenv("R2_SECRET_ACCESS_KEY"),
+    os.getenv("R2_BUCKET_NAME"),
+    os.getenv("R2_ACCOUNT_ID"),
+])
 
-# For production, use cloud storage (AWS S3, Google Cloud Storage)
-# Uncomment and configure when ready:
-# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-# AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
-# AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
-# AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
-# AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
+if _r2_ready:
+    STORAGES = {
+        "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    }
+    AWS_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = os.getenv("R2_BUCKET_NAME")
+    AWS_S3_ENDPOINT_URL = f"https://{os.getenv('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com"
+    AWS_S3_REGION_NAME = "auto"
+    AWS_DEFAULT_ACL = None        # R2 uses bucket-level public access, not per-object ACLs
+    AWS_QUERYSTRING_AUTH = False  # serve files via plain URL, no signed query strings
+    AWS_S3_FILE_OVERWRITE = False # keep originals when filenames collide
+    _r2_domain = os.getenv("R2_PUBLIC_DOMAIN", "")
+    if _r2_domain:
+        AWS_S3_CUSTOM_DOMAIN = _r2_domain
+        MEDIA_URL = f"https://{_r2_domain}/"
+    else:
+        # Public access not configured yet — images won't be viewable but won't break the app
+        MEDIA_URL = "/media/"
+else:
+    # Fallback: local disk (fine for dev, breaks on Railway restarts)
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

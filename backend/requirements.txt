@@ -70,3 +70,4 @@ factory-boy==3.3.0
 django-redis==5.4.0
 redis==5.2.1
 PyJWT[crypto]>=2.8.0
+django-storages[s3]>=1.14
