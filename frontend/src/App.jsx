@@ -1,7 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import ImageUploader from './components/imageUploader';
+import ImageUploader from './components/ImageUploader';
 import HistoryPage from './components/HistoryPage';
 
 export default function App() {
