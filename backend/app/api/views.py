@@ -67,7 +67,7 @@ def gemini_vision_data(instance):
     - style_summary: most effective one sentence summary to find similar items online, making sure to include type, fit, and style keywords. The more accurate the better.
     Output only JSON, no extra commentary.
     """
-    image_path = resize_image(instance.image.path)
+    image_path = resize_image(instance.image.file)
 
     try:
         with open(image_path, "rb") as img:
@@ -89,6 +89,10 @@ def gemini_vision_data(instance):
             data = {"error": "Could not parse AI output", "raw": response.text}
     except Exception as e:
         data = {"error": f"Gemini API call failed: {str(e)}"}
+
+    finally:
+        if os.path.exists(image_path):
+            os.unlink(image_path)
 
     return data
 
