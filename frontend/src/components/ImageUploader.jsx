@@ -47,7 +47,7 @@ export default function ImageUploader() {
       if (err.response?.status === 429) {
         setError("You've made too many requests. Please wait a moment and try again.");
       } else {
-        setError("Something went wrong while analyzing your image. Please try again.");
+        setError("Something went wrong while analyzing your image. Please try again.", err);
       }
     } finally {
       setLoading(false);
