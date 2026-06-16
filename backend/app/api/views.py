@@ -109,6 +109,7 @@ class UploadImageViewSet(ModelViewSet):
         data = gemini_vision_data(instance)
 
         # Save labels to DB
+        instance.image = data.get("image")
         instance.gender = data.get("gender")
         instance.outfit_type = data.get("type")
         instance.color = data.get("color")
