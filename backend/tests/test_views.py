@@ -67,6 +67,27 @@ class TestUploadImageViewSet:
         assert response.status_code == 200
         assert isinstance(response.json(), (list, dict))
 
+    def test_history_endpoint_uses_unverified_clerk_sub_when_verification_fails(self):
+        """History should still resolve the user from a Bearer token payload if JWKS verification fails."""
+        OutfitSearch.objects.create(
+            clerk_user_id="clerk-user-123",
+            refined_label="Test outfit",
+            results=[],
+        )
+
+        with patch("app.api.views.CLERK_JWKS_URL", "https://example.com/.well-known/jwks.json"):
+            with patch("app.api.views._jwks_client") as mock_jwks:
+                mock_jwks.get_signing_key_from_jwt.side_effect = Exception("jwks down")
+
+                token = "eyJhbGciOiJub25lIn0.eyJzdWIiOiJjbGVyay11c2VyLTEyMyJ9."
+                response = self.client.get(
+                    "/api/outfit_searches/history/",
+                    HTTP_AUTHORIZATION=f"Bearer {token}",
+                )
+
+        assert response.status_code == 200
+        assert response.json()[0]["clerk_user_id"] == "clerk-user-123"
+
     @patch("app.api.views.genai")
     @patch("app.api.views.requests.get")
     def test_gemini_api_failure_handling(self, mock_serp, mock_genai, sample_image):

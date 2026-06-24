@@ -11,4 +11,11 @@ class ImageSerializer(ModelSerializer):
 class HistorySerializer(ModelSerializer):
     class Meta:
         model = OutfitSearch
-        exclude = ["clerk_user_id"]
+        fields = [
+            "id",
+            "refined_label",
+            "results",
+            "image_url",
+            "created_at",
+            "clerk_user_id",
+        ]
