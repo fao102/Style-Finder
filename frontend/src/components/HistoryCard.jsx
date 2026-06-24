@@ -1,6 +1,24 @@
 import React from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
+const API_BASE = (API_URL || "").replace(/\/$/, "");
+
+function getImageUrl(src) {
+  
+  if (!src) return "";
+  if (src.startsWith("http://") || src.startsWith("https://")) {
+    return `${API_BASE}/api/outfit_searches/proxy_image/?url=${encodeURIComponent(src)}`;
+  }
+
+  const normalized = src.startsWith("/") ? src : `/${src}`;
+  if (normalized.startsWith("/media/")) {
+    return `${API_BASE}${normalized}`;
+  }
+  if (normalized.startsWith("/uploads/")) {
+    return `${API_BASE}/media${normalized}`;
+  }
+  return `${API_BASE}${normalized}`;
+}
 
 function extractPrice(item) {
   return item.extracted_price ?? item.price?.extracted_value ?? null;
@@ -24,7 +42,7 @@ export default function HistoryCard({ item }) {
   const { image, style_summary, gender, outfit_type, color, fit, results = [], created_at } = item;
   const products = results.slice(0, 6);
   const cheapest = topCheapest(results);
-  const imageUrl = image?.startsWith("http") ? image : `${API_URL}${image}`;
+  const imageUrl = getImageUrl(image);
 
   return (
     <div className="card shadow-sm mb-4 border-0">
@@ -64,11 +82,14 @@ export default function HistoryCard({ item }) {
                 {products.map((p, i) => (
                   <a key={i} href={p.product_link || p.link} target="_blank" rel="noopener noreferrer">
                     <img
-                      src={p.thumbnail}
+                      src={getImageUrl(p.thumbnail)}
                       alt={p.title}
                       title={p.title}
                       className="rounded border"
                       style={{ width: 72, height: 72, objectFit: "cover" }}
+                      onError={(event) => {
+                        event.currentTarget.src = "https://placehold.co/72x72?text=No+Image";
+                      }}
                     />
                   </a>
                 ))}
@@ -94,10 +115,13 @@ export default function HistoryCard({ item }) {
                 {cheapest.map((p, i) => (
                   <li key={i} className="d-flex align-items-center gap-2 mb-2">
                     <img
-                      src={p.thumbnail}
+                      src={getImageUrl(p.thumbnail)}
                       alt={p.title}
                       className="rounded border flex-shrink-0"
                       style={{ width: 40, height: 40, objectFit: "cover" }}
+                      onError={(event) => {
+                        event.currentTarget.src = "https://placehold.co/40x40?text=No+Image";
+                      }}
                     />
                     <div className="overflow-hidden">
                       <a

@@ -14,6 +14,8 @@ from .helper import resize_image
 import json
 import jwt
 from jwt import PyJWKClient
+from django.conf import settings
+from django.http import StreamingHttpResponse
 
 load_dotenv()
 
@@ -26,17 +28,34 @@ _jwks_client = PyJWKClient(CLERK_JWKS_URL) if CLERK_JWKS_URL else None
 
 
 def get_clerk_user_id(request):
-    if not _jwks_client:
-        return None
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         return None
-    token = auth_header[7:]
+
+    token = auth_header[7:].strip()
+    if not token:
+        return None
+
+    if not CLERK_JWKS_URL:
+        try:
+            payload = jwt.decode(token, options={"verify_signature": False})
+            return payload.get("sub")
+        except Exception:
+            if getattr(settings, "DEBUG", False):
+                return "local-dev-user"
+            return None
+
     try:
         signing_key = _jwks_client.get_signing_key_from_jwt(token)
         data = jwt.decode(token, signing_key.key, algorithms=["RS256"])
         return data.get("sub")
     except Exception:
+        if getattr(settings, "DEBUG", False):
+            try:
+                payload = jwt.decode(token, options={"verify_signature": False})
+                return payload.get("sub")
+            except Exception:
+                return "local-dev-user"
         return None
 
 
@@ -84,7 +103,10 @@ def gemini_vision_data(instance):
                 generation_config={"response_mime_type": "application/json"},
             )
         try:
+            print("Gemini response text:", instance.image.url)  # Debugging line
             data = json.loads(response.text)
+            data["image"] = instance.image  # Add the image URL to the data
+            data["image_url"] = instance.image.url  # Add the image URL to the data
         except json.JSONDecodeError:
             data = {"error": "Could not parse AI output", "raw": response.text}
     except Exception as e:
@@ -110,6 +132,7 @@ class UploadImageViewSet(ModelViewSet):
 
         # Save labels to DB
         instance.image = data.get("image")
+        instance.image_url = data.get("image_url")
         instance.gender = data.get("gender")
         instance.outfit_type = data.get("type")
         instance.color = data.get("color")
@@ -148,6 +171,7 @@ class UploadImageViewSet(ModelViewSet):
     @action(detail=False, methods=["get"])
     def history(self, request):
         user_id = get_clerk_user_id(request)
+        print("user_id:", user_id)
         if not user_id:
             return Response(
                 {"error": "Authentication required"},
@@ -160,3 +184,19 @@ class UploadImageViewSet(ModelViewSet):
             searches, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def proxy_image(self, request):
+        image_url = request.query_params.get("url")
+        if not image_url:
+            return Response({"error": "url required"}, status=400)
+        try:
+            resp = requests.get(image_url, timeout=10, stream=True)
+            resp.raise_for_status()
+            return StreamingHttpResponse(
+                resp.iter_content(chunk_size=8192),
+                content_type=resp.headers.get("content-type", "image/jpeg"),
+                status=resp.status_code,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
