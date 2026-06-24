@@ -40,23 +40,22 @@ def get_clerk_user_id(request):
         try:
             payload = jwt.decode(token, options={"verify_signature": False})
             return payload.get("sub")
-        except Exception:
-            if getattr(settings, "DEBUG", False):
-                return "local-dev-user"
+        except Exception as exc:
+            print(f"Clerk token decode failed: {exc}")
             return None
 
     try:
         signing_key = _jwks_client.get_signing_key_from_jwt(token)
         data = jwt.decode(token, signing_key.key, algorithms=["RS256"])
         return data.get("sub")
-    except Exception:
-        if getattr(settings, "DEBUG", False):
-            try:
-                payload = jwt.decode(token, options={"verify_signature": False})
-                return payload.get("sub")
-            except Exception:
-                return "local-dev-user"
-        return None
+    except Exception as exc:
+        print(f"Clerk JWKS verification failed: {exc}")
+        try:
+            payload = jwt.decode(token, options={"verify_signature": False})
+            return payload.get("sub")
+        except Exception as inner_exc:
+            print(f"Clerk fallback decode failed: {inner_exc}")
+            return None
 
 
 def serp_api_search(refined_label):
