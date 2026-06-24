@@ -39,10 +39,11 @@ function formatDate(iso) {
 }
 
 export default function HistoryCard({ item }) {
-  const { image, style_summary, gender, outfit_type, color, fit, results = [], created_at } = item;
+  const { image, image_url, style_summary, gender, outfit_type, color, fit, results = [], created_at } = item;
   const products = results.slice(0, 6);
   const cheapest = topCheapest(results);
-  const imageUrl = getImageUrl(image);
+  const imageSource = image || image_url || "";
+  const imageUrl = getImageUrl(imageSource);
 
   return (
     <div className="card shadow-sm mb-4 border-0">
